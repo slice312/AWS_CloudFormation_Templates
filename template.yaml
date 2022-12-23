@@ -2,24 +2,28 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: ---
 
 Parameters:
-  MyKeyPairName:
+  EC2KeyPairName: # ec2-book-app-api-key (ключ который я создал вручную для инстанца EC2)
     Type: String
 
 Resources:
   EC2BookAppApi:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: ami-0590f3a1742b17914  # id OS (ubuntu ami-0590f3a1742b17914)
+      ImageId: ami-0590f3a1742b17914  # AMI (Amazon Machine Image) - id OS (ubuntu ami-0590f3a1742b17914)
       InstanceType: t2.micro
-      KeyName: !Ref MyKeyPairName  # talgat_ec2-booka-app-api (ключ который я создал при ручном создании другого инстанца EC2)
+      KeyName: !Ref EC2KeyPairName  
       SecurityGroups:
         - !Ref SecurityGroupEC2BookAppApi
       UserData:
         Fn::Base64: |
           #!/bin/bash
-          su ubuntu
+          
+          
+          sudo -u ubuntu -i << 'EOF'
           cd ~
-          echo "Hello, world!" > kek.tex
+          whoami > whoami.txt
+          echo "Hello, world!" > kek.txt
+          EOF
       Tags:
         - Key: Name
           Value: EC2BookAppApi
