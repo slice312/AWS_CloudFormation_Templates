@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: ---
 
 Parameters:
-  EC2KeyPairName: # ec2-book-app-api-key (ключ который я создал вручную для инстанца EC2)
+  EC2KeyPairName: # ec2-book-app-api-key (ключ ED25519 который я создал вручную для инстанца EC2)
     Type: String
 
 Resources:
@@ -17,12 +17,28 @@ Resources:
       UserData:
         Fn::Base64: |
           #!/bin/bash
+          dpkg --purge --force-all docker docker-engine docker.io containerd runc
+          apt update
+          apt install -y \
+          ca-certificates \
+          curl \
+          gnupg \
+          lsb-release
           
+          mkdir -p /etc/apt/keyrings
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
           
+          echo \
+          "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+          $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null\
+          
+          apt update
+          apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+                                    
           sudo -u ubuntu -i << 'EOF'
           cd ~
+          sudo docker --version > result.txt
           whoami > whoami.txt
-          echo "Hello, world!" > kek.txt
           EOF
       Tags:
         - Key: Name
