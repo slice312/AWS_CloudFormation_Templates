@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: EC2 Role for DynamoDB service
+
+Resources:
+  IAMRoleEC2DynamoDBFullAccess:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ec2-dynamodb-full-access
+      Description: Allow EC2 full access for DynamoDB service
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+              Action:
+                - "sts:AssumeRole"
+      Policies:
+        - PolicyName: FullAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: ListAndDescribe
+                Effect: Allow
+                Action:
+                  - dynamodb:*
+                Resource: arn:aws:dynamodb:*
+
+
+      
+      
+#        Version: "2012-10-17"
+#        Statement:
+#          - Effect: Allow
+#            Principal:
+#              Service:
+#                - ec2.amazonaws.com
+#            Action:
+#              - "sts:AssumeRole"
+#      Policies:
+#        - PolicyName: DynamoDBFullAccess
+##          
+#  ThisServicePolicy:
+#    Type: AWS::IAM::ManagedPolicy
+#    Properties:
+#      Assum
+#      ManagedPolicyName: SomePolicyName
+#      PolicyDocument:
+#        Version: "2012-10-17"
+#        Statement:
+#          - Effect: "Allow"
+#            Action:
+#              - "dynamodb:GetItem"
+#              - "dynamodb:BatchGetItem"
+#              - "dynamodb:Query"
+#            Resource: "*"
+#          

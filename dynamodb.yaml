@@ -1,0 +1,20 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Creating DynamoDB tables with CloudFormation
+
+Resources:
+  BookTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: books
+      AttributeDefinitions:
+        AttributeName: ID
+        AttributeType: S
+        BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        AttributeName: ID
+        KeyType: HASH
+        
+Outputs:
+  Student:
+    Description: Student table created with this template
+    Value: !Ref BookTable

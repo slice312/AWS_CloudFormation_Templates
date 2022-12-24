@@ -1,8 +1,8 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: ---
+Description: EC2 instance creation
 
 Parameters:
-  EC2KeyPairName: # ec2-book-app-api-key (ключ ED25519 который я создал вручную для инстанца EC2)
+  EC2KeyPairName: # ec2-book-app-api-key (ключ ED25519 который я создал вручную для инстанца EC2, в AWS непредусмотренно создание из шаблона)
     Type: String
 
 Resources:
@@ -11,12 +11,14 @@ Resources:
     Properties:
       ImageId: ami-0590f3a1742b17914  # AMI (Amazon Machine Image) - id OS (ubuntu ami-0590f3a1742b17914)
       InstanceType: t2.micro
-      KeyName: !Ref EC2KeyPairName  
+      KeyName: !Ref EC2KeyPairName
+      IamInstanceProfile: !Ref EC2InstanceProfile
       SecurityGroups:
         - !Ref SecurityGroupEC2BookAppApi
       UserData:
         Fn::Base64: |
           #!/bin/bash
+          echo "------------------------------------- DOCKER INSTALL START -------------------------------------
           dpkg --purge --force-all docker docker-engine docker.io containerd runc
           apt update
           apt install -y \
@@ -34,6 +36,7 @@ Resources:
           
           apt update
           apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+          echo "------------------------------------- DOCKER INSTALL END -------------------------------------
                                     
           sudo -u ubuntu -i << 'EOF'
           cd ~
@@ -54,6 +57,61 @@ Resources:
           FromPort: 22
           ToPort: 22
           CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0  
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
           Value: SecurityGroupEC2BookAppApi
+          
+  IAMRoleEC2DynamoDBFullAccess:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: DynamoDBFullAccess
+          
+  EC2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: DynamoDBFullAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: ListAndDescribe
+                Effect: Allow
+                Action:
+                  - dynamodb:*
+                  - dynamodb:DescribeReservedCapacity*
+                  - dynamodb:DescribeLimits
+                  - dynamodb:DescribeTimeToLive
+                Resource: arn:aws:dynamodb:*
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref EC2InstanceRole

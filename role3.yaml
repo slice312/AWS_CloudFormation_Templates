@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources:
+#  EC2Instance:
+#    Type: AWS::EC2::Instance
+#    Properties:
+#      ImageId: ami-0b0dcb5067f052a63
+#      InstanceType: t2.micro
+##      IamInstanceProfile: !Ref EC2InstanceProfile
+#      KeyName: JojoKeys
+#      SecurityGroupIds:
+#        - sg-0f1a28bc374f4e52a
+
+  EC2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: DynamoDBFullAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: ListAndDescribe
+                Effect: Allow
+                Action:
+                  - dynamodb:*
+                  - dynamodb:DescribeReservedCapacity*
+                  - dynamodb:DescribeLimits
+                  - dynamodb:DescribeTimeToLive
+                Resource: arn:aws:dynamodb:*
+                
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref EC2InstanceRole
