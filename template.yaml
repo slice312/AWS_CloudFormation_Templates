@@ -12,7 +12,7 @@ Resources:
       ImageId: ami-0590f3a1742b17914  # AMI (Amazon Machine Image) - id OS (ubuntu ami-0590f3a1742b17914)
       InstanceType: t2.micro
       KeyName: !Ref EC2KeyPairName
-      IamInstanceProfile: !Ref EC2InstanceProfile
+      IamInstanceProfile: !Ref EC2InstanceProfileEC2InstanceRoleDynamoDB
       SecurityGroups:
         - !Ref SecurityGroupEC2BookAppApi
       UserData:
@@ -69,7 +69,7 @@ Resources:
         - Key: Name
           Value: SecurityGroupEC2BookAppApi
           
-  EC2InstanceRole:
+  EC2InstanceRoleDynamoDB:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -95,8 +95,8 @@ Resources:
                   - dynamodb:DescribeTimeToLive
                 Resource: arn:aws:dynamodb:*
 
-  EC2InstanceProfile:
+  EC2InstanceProfileEC2InstanceRoleDynamoDB:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Roles:
-        - !Ref EC2InstanceRole
+        - !Ref EC2InstanceRoleDynamoDB
