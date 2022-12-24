@@ -18,7 +18,7 @@ Resources:
       UserData:
         Fn::Base64: |
           #!/bin/bash
-          echo "------------------------------------- DOCKER INSTALL START -------------------------------------
+          echo "------------------------------------- DOCKER INSTALL START -------------------------------------"
           dpkg --purge --force-all docker docker-engine docker.io containerd runc
           apt update
           apt install -y \
@@ -36,7 +36,7 @@ Resources:
           
           apt update
           apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-          echo "------------------------------------- DOCKER INSTALL END -------------------------------------
+          echo "------------------------------------- DOCKER INSTALL END -------------------------------------"
                                     
           sudo -u ubuntu -i << 'EOF'
           cd ~
@@ -68,21 +68,6 @@ Resources:
       Tags:
         - Key: Name
           Value: SecurityGroupEC2BookAppApi
-          
-  IAMRoleEC2DynamoDBFullAccess:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - ec2.amazonaws.com
-            Action:
-              - "sts:AssumeRole"
-      Policies:
-        - PolicyName: DynamoDBFullAccess
           
   EC2InstanceRole:
     Type: AWS::IAM::Role
