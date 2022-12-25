@@ -1,20 +1,19 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Creating DynamoDB tables with CloudFormation
+Description: AWS CloudFormation Template To Create a DynamoDB
 
 Resources:
-  BookTable:
+  DynamoDbBooksTable:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: books
       AttributeDefinitions:
-        AttributeName: ID
-        AttributeType: S
-        BillingMode: PAY_PER_REQUEST
+        -
+          AttributeName: isbn
+          AttributeType: S
       KeySchema:
-        AttributeName: ID
-        KeyType: HASH
-        
-Outputs:
-  Student:
-    Description: Student table created with this template
-    Value: !Ref BookTable
+        -
+          AttributeName: isbn
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1

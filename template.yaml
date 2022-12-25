@@ -1,11 +1,27 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: EC2 instance creation
 
+
 Parameters:
   EC2KeyPairName: # ec2-book-app-api-key (ключ ED25519 который я создал вручную для инстанца EC2, в AWS непредусмотренно создание из шаблона)
-    Type: String
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: name of the key pair to ssh into the instance
 
 Resources:
+  DynamoDbBooksTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Books
+      AttributeDefinitions:
+        - AttributeName: isbn
+          AttributeType: S
+      KeySchema:
+        - AttributeName: isbn
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+  
   EC2BookAppApi:
     Type: AWS::EC2::Instance
     Properties:
@@ -22,22 +38,22 @@ Resources:
           dpkg --purge --force-all docker docker-engine docker.io containerd runc
           apt update
           apt install -y \
-          ca-certificates \
-          curl \
-          gnupg \
-          lsb-release
+            ca-certificates \
+            curl \
+            gnupg \
+            lsb-release
           
           mkdir -p /etc/apt/keyrings
           curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
           
           echo \
-          "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-          $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null\
+            "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+            $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null\
           
           apt update
           apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
           echo "------------------------------------- DOCKER INSTALL END -------------------------------------"
-                                    
+          
           sudo -u ubuntu -i << 'EOF'
           cd ~
           sudo docker --version > result.txt
@@ -45,8 +61,8 @@ Resources:
           EOF
       Tags:
         - Key: Name
-          Value: EC2BookAppApi
-          
+          Value: book-app-api
+  
   SecurityGroupEC2BookAppApi:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -60,41 +76,64 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          CidrIp: 0.0.0.0/0  
+          CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
           FromPort: 443
           ToPort: 443
           CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
-          Value: SecurityGroupEC2BookAppApi
-          
+          Value: sg-book-app-api
+  
   EC2InstanceRoleDynamoDB:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: 2012-10-17
         Statement:
           - Effect: Allow
             Principal:
               Service:
                 - ec2.amazonaws.com
             Action:
-              - "sts:AssumeRole"
+              - sts:AssumeRole
       Policies:
         - PolicyName: DynamoDBFullAccess
           PolicyDocument:
-            Version: "2012-10-17"
+            Version: 2012-10-17
             Statement:
               - Sid: ListAndDescribe
                 Effect: Allow
                 Action:
-                  - dynamodb:*
-                  - dynamodb:DescribeReservedCapacity*
-                  - dynamodb:DescribeLimits
-                  - dynamodb:DescribeTimeToLive
-                Resource: arn:aws:dynamodb:*
-
+                  - dynamodb:GetShardIterator
+                  - dynamodb:Scan
+                  - dynamodb:Query
+                  - dynamodb:DescribeStream
+                  - dynamodb:GetRecords
+                  - dynamodb:ListStreams
+                Resource: 
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/Books/index/*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/Books/stream/*"
+              - Sid: DynamoDBTableAccess
+                Effect: Allow
+                Action:
+                  - dynamodb:BatchGetItem
+                  - dynamodb:BatchWriteItem
+                  - dynamodb:ConditionCheckItem
+                  - dynamodb:PutItem
+                  - dynamodb:DescribeTable
+                  - dynamodb:DeleteItem
+                  - dynamodb:GetItem
+                  - dynamodb:Scan
+                  - dynamodb:Query
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/Books"
+                    
+      Tags:
+        - Key: Name
+          Value: books-db-crud-role
+            
   EC2InstanceProfileEC2InstanceRoleDynamoDB:
     Type: AWS::IAM::InstanceProfile
     Properties:
