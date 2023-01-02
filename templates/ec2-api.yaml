@@ -26,6 +26,7 @@ Resources:
   EC2InstanceRoleDynamoDB:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: books-db-crud-role
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -67,9 +68,6 @@ Resources:
                   - dynamodb:UpdateItem
                 Resource:
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/Books"
-      Tags:
-        - Key: Name
-          Value: books-db-crud-role
 
 
   EC2InstanceProfileRoleDynamoDB:
