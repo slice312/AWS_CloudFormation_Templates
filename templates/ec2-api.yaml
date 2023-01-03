@@ -3,7 +3,7 @@ Description: EC2 Instance, DynamoDB & IAM Roles creation
 
 
 Parameters:
-  EC2KeyPairName: # ec2-book-app-api-key (ключ ED25519 который я создал вручную для инстанца EC2, в AWS непредусмотренно создание из шаблона)
+  EC2KeyPairName: # AWS does not provide creation of KeyPair from a templat)
     Type: AWS::EC2::KeyPair::KeyName
     Description: name of the key pair to ssh into the instance
 
