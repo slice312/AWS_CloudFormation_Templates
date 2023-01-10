@@ -3,7 +3,7 @@ Description: EC2 Instance, DynamoDB & IAM Roles creation
 
 
 Parameters:
-  EC2KeyPairName: # AWS does not provide creation of KeyPair from a templat)
+  EC2KeyPairName: # AWS does not provide creation of KeyPair from a template)
     Type: AWS::EC2::KeyPair::KeyName
     Description: name of the key pair to ssh into the instance
 
@@ -41,18 +41,6 @@ Resources:
           PolicyDocument:
             Version: 2012-10-17
             Statement:
-              - Sid: ListAndDescribe
-                Effect: Allow
-                Action:
-                  - dynamodb:GetShardIterator
-                  - dynamodb:Scan
-                  - dynamodb:Query
-                  - dynamodb:DescribeStream
-                  - dynamodb:GetRecords
-                  - dynamodb:ListStreams
-                Resource:
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/Books/index/*"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/Books/stream/*"
               - Sid: DynamoDBTableAccess
                 Effect: Allow
                 Action:
@@ -113,7 +101,6 @@ Resources:
           sudo -u ubuntu -i << 'EOF'
           cd ~
           sudo docker --version > result.txt
-          whoami > whoami.txt
           EOF
       Tags:
         - Key: Name
@@ -124,7 +111,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupName: SecurityGroup_BookAppApi
-      GroupDescription: Allowing SSH from everywhere
+      GroupDescription: Allowing SSH, HTTP, HTTPS from everywhere
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
