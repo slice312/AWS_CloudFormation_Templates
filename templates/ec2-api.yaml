@@ -3,7 +3,7 @@ Description: EC2 Instance, DynamoDB & IAM Roles creation
 
 
 Parameters:
-  EC2KeyPairName: # AWS does not provide creation of KeyPair from a template)
+  EC2KeyPairName: # AWS does not provide creation of KeyPair from a template
     Type: AWS::EC2::KeyPair::KeyName
     Description: name of the key pair to ssh into the instance
 
